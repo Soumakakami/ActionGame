@@ -2,14 +2,15 @@ using UnityEngine;
 
 public class GrapplingGun : MonoBehaviour {
 
-    private LineRenderer lr;
+    public LineRenderer lr;
     private Vector3 grapplePoint;
     public LayerMask whatIsGrappleable;
     public Transform gunTip, camera, player;
     private float maxDistance = 100f;
     private SpringJoint joint;
 
-    void Awake() {
+    void Awake()
+    {
         lr = GetComponent<LineRenderer>();
     }
 
@@ -40,13 +41,15 @@ public class GrapplingGun : MonoBehaviour {
 
             float distanceFromPoint = Vector3.Distance(player.position, grapplePoint);
 
-            //The distance grapple will try to keep from grapple point. 
+            //グラップルからの距離は、グラップルポイントからの距離を保ちます。
             joint.maxDistance = distanceFromPoint * 0.8f;
             joint.minDistance = distanceFromPoint * 0.25f;
 
-            //Adjust these values to fit your game.
+            ///これらの値を調整して、ゲームに合わせます。
+            ///spring:引っ張る強さ(4.5fが初期)
+            ///
             joint.spring = 4.5f;
-            joint.damper = 7f;
+            joint.damper = 0f;
             joint.massScale = 4.5f;
 
             lr.positionCount = 2;

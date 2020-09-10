@@ -1,90 +1,116 @@
-// Some stupid rigidbody based movement by Dani
-
 using System;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour {
 
-    //Assingables
+    //割り当て
     public Transform playerCam;
     public Transform orientation;
-    
-    //Other
+
+    //その他
     private Rigidbody rb;
 
-    //Rotation and look
+    //回転と外観
     private float xRotation;
     private float sensitivity = 50f;
     private float sensMultiplier = 1f;
-    
-    //Movement
+
+    //移動
     public float moveSpeed = 4500;
     public float maxSpeed = 20;
     public bool grounded;
+
+    //地面のレイヤーを判別
     public LayerMask whatIsGround;
     
     public float counterMovement = 0.175f;
     private float threshold = 0.01f;
     public float maxSlopeAngle = 35f;
 
-    //Crouch & Slide
+    //クラウチ＆スライド
     private Vector3 crouchScale = new Vector3(1, 0.5f, 1);
     private Vector3 playerScale;
     public float slideForce = 400;
     public float slideCounterMovement = 0.2f;
 
-    //Jumping
+    //ジャンピング
     private bool readyToJump = true;
     private float jumpCooldown = 0.25f;
     public float jumpForce = 550f;
     
-    //Input
+    //入力
     float x, y;
     bool jumping, sprinting, crouching;
     
-    //Sliding
+    //スライディング
     private Vector3 normalVector = Vector3.up;
     private Vector3 wallNormalVector;
 
-    void Awake() {
+    void Awake() 
+    {
+        //Rigidbodyを取得
         rb = GetComponent<Rigidbody>();
     }
     
-    void Start() {
+    void Start() 
+    {
+        //プレイヤーの初期スケールを保存
         playerScale =  transform.localScale;
+        //カーソルをロックする
         Cursor.lockState = CursorLockMode.Locked;
+        //マウスポインタを非表示
         Cursor.visible = false;
     }
 
     
-    private void FixedUpdate() {
+    private void FixedUpdate()
+    {
+        //プレイヤーの動き
         Movement();
     }
 
-    private void Update() {
+    private void Update() 
+    {
+        //ユーザーのインプットを管理する
         MyInput();
         Look();
     }
 
     /// <summary>
-    /// Find user input. Should put this in its own class but im lazy
+    /// ユーザー入力を検索します。
     /// </summary>
-    private void MyInput() {
+    private void MyInput() 
+    {
+        //WASAD&上下左右の入力を取得
         x = Input.GetAxisRaw("Horizontal");
         y = Input.GetAxisRaw("Vertical");
-        jumping = Input.GetButton("Jump");
+
+        //地面に触れている間はジャンプできる
+        if (grounded)
+        {
+            jumping = Input.GetButton("Jump");
+        }
+
+        //左コントロールキーを取得(スライディング用)
         crouching = Input.GetKey(KeyCode.LeftControl);
       
-        //Crouching
+        //スライディング開始
         if (Input.GetKeyDown(KeyCode.LeftControl))
             StartCrouch();
+        //スライディング終了
         if (Input.GetKeyUp(KeyCode.LeftControl))
             StopCrouch();
     }
 
-    private void StartCrouch() {
+    //スライディング開始
+    private void StartCrouch() 
+    {
+        //プレイヤーをスレイディング時のスケールまで小さくする
         transform.localScale = crouchScale;
+
+        //強制的に小さくなったスケール分下に移動
         transform.position = new Vector3(transform.position.x, transform.position.y - 0.5f, transform.position.z);
+
         if (rb.velocity.magnitude > 0.5f) {
             if (grounded) {
                 rb.AddForce(orientation.transform.forward * slideForce);
@@ -92,29 +118,31 @@ public class PlayerMovement : MonoBehaviour {
         }
     }
 
-    private void StopCrouch() {
+    private void StopCrouch()
+    {
         transform.localScale = playerScale;
         transform.position = new Vector3(transform.position.x, transform.position.y + 0.5f, transform.position.z);
     }
 
-    private void Movement() {
-        //Extra gravity
+    private void Movement() 
+    {
+        //余分な重力
         rb.AddForce(Vector3.down * Time.deltaTime * 10);
-        
-        //Find actual velocity relative to where player is looking
+
+        //プレーヤーが見ている場所を基準にして実際の速度を見つける
         Vector2 mag = FindVelRelativeToLook();
         float xMag = mag.x, yMag = mag.y;
 
-        //Counteract sliding and sloppy movement
+        //スライドとずさんな動きを打ち消す
         CounterMovement(x, y, mag);
-        
-        //If holding jump && ready to jump, then jump
+
+        //ジャンプを保持 && ジャンプの準備ができている場合は、ジャンプ
         if (readyToJump && jumping) Jump();
 
-        //Set max speed
+        //最高速度を設定
         float maxSpeed = this.maxSpeed;
-        
-        //If sliding down a ramp, add force down so player stays grounded and also builds speed
+
+        //スロープを滑り降りる場合は、フォースダウンを追加して、プレイヤーが接地したままで速度も上げる
         if (crouching && grounded && readyToJump) {
             rb.AddForce(Vector3.down * Time.deltaTime * 3000);
             return;
@@ -143,8 +171,11 @@ public class PlayerMovement : MonoBehaviour {
         rb.AddForce(orientation.transform.right * x * moveSpeed * Time.deltaTime * multiplier);
     }
 
-    private void Jump() {
-        if (grounded && readyToJump) {
+    private void Jump() 
+    {
+        if (grounded && readyToJump)
+        {
+
             readyToJump = false;
 
             //Add jump forces
@@ -162,29 +193,35 @@ public class PlayerMovement : MonoBehaviour {
         }
     }
     
-    private void ResetJump() {
+    private void ResetJump() 
+    {
         readyToJump = true;
     }
     
     private float desiredX;
-    private void Look() {
+    private void Look() 
+    {
+        //マウスのX,Y軸方向の動きを取得
         float mouseX = Input.GetAxis("Mouse X") * sensitivity * Time.fixedDeltaTime * sensMultiplier;
         float mouseY = Input.GetAxis("Mouse Y") * sensitivity * Time.fixedDeltaTime * sensMultiplier;
 
-        //Find current look rotation
+        //現在の外観の回転を見つける
         Vector3 rot = playerCam.transform.localRotation.eulerAngles;
         desiredX = rot.y + mouseX;
-        
-        //Rotate, and also make sure we dont over- or under-rotate.
+
+        //回転させて上下方向の動きに制限をかける
         xRotation -= mouseY;
         xRotation = Mathf.Clamp(xRotation, -90f, 90f);
 
-        //Perform the rotations
+        //計算した結果をプレイヤーに反映させる
         playerCam.transform.localRotation = Quaternion.Euler(xRotation, desiredX, 0);
         orientation.transform.localRotation = Quaternion.Euler(0, desiredX, 0);
     }
 
-    private void CounterMovement(float x, float y, Vector2 mag) {
+    //カウンタームーブ
+    private void CounterMovement(float x, float y, Vector2 mag)
+    {
+        //地面から離れていたりジャンプ中は処理しない
         if (!grounded || jumping) return;
 
         //Slow down sliding
@@ -214,7 +251,8 @@ public class PlayerMovement : MonoBehaviour {
     /// Useful for vectors calculations regarding movement and limiting movement
     /// </summary>
     /// <returns></returns>
-    public Vector2 FindVelRelativeToLook() {
+    public Vector2 FindVelRelativeToLook() 
+    {
         float lookAngle = orientation.transform.eulerAngles.y;
         float moveAngle = Mathf.Atan2(rb.velocity.x, rb.velocity.z) * Mathf.Rad2Deg;
 
@@ -228,7 +266,8 @@ public class PlayerMovement : MonoBehaviour {
         return new Vector2(xMag, yMag);
     }
 
-    private bool IsFloor(Vector3 v) {
+    private bool IsFloor(Vector3 v) 
+    {
         float angle = Vector3.Angle(Vector3.up, v);
         return angle < maxSlopeAngle;
     }
@@ -238,7 +277,8 @@ public class PlayerMovement : MonoBehaviour {
     /// <summary>
     /// Handle ground detection
     /// </summary>
-    private void OnCollisionStay(Collision other) {
+    private void OnCollisionStay(Collision other) 
+    {
         //Make sure we are only checking for walkable layers
         int layer = other.gameObject.layer;
         if (whatIsGround != (whatIsGround | (1 << layer))) return;
@@ -247,7 +287,8 @@ public class PlayerMovement : MonoBehaviour {
         for (int i = 0; i < other.contactCount; i++) {
             Vector3 normal = other.contacts[i].normal;
             //FLOOR
-            if (IsFloor(normal)) {
+            if (IsFloor(normal)) 
+            {
                 grounded = true;
                 cancellingGrounded = false;
                 normalVector = normal;
@@ -257,13 +298,15 @@ public class PlayerMovement : MonoBehaviour {
 
         //Invoke ground/wall cancel, since we can't check normals with CollisionExit
         float delay = 3f;
-        if (!cancellingGrounded) {
+        if (!cancellingGrounded)
+        {
             cancellingGrounded = true;
             Invoke(nameof(StopGrounded), Time.deltaTime * delay);
         }
     }
 
-    private void StopGrounded() {
+    private void StopGrounded() 
+    {
         grounded = false;
     }
     
