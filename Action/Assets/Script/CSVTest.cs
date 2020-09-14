@@ -5,29 +5,20 @@ using System.Text;
 using System.IO;
 using SKLibrary;
 using UnityEngine.UI;
+using System;
 
 public class CSVTest : MonoBehaviour
 {
-    private void Update()
+    CSVController cSVController = new CSVController();
+    string[][] data;
+    private void Start()
     {
-        if (Input.GetKeyDown(KeyCode.A))
-        {
-            if (!File.Exists("//172.18.133.1/GameLabo/student/たじまゼミ/各務/Test.csv"))
-            {
-                return;
-            }
-
-            //text.text = "ここまできたよ１";
-            StreamWriter sw = new StreamWriter("//172.18.133.1/GameLabo/student/たじまゼミ/各務/Test.csv", true, Encoding.GetEncoding("utf-8"));
-            // ヘッダー出力
-            string[] s1 = { "プレイヤー名", "記録" };
-            string s2 = string.Join(",", s1);
-            sw.WriteLine(s2);
-            sw.Close();
-        }
-
-        transform.position = new Vector3(transform.position.x,0,transform.position.z);
-        transform.AddPositionX(10);
-        DebugUtils.Log("a");
+        int userID = (cSVController.GetLength("UserData"))-1;
+        string[] a = { userID.ToString(), "GT4A", "各務" };
+        data = cSVController.AllLoad("UserData");
+        //data[0][0] = "2";
+        StartCoroutine(cSVController.OverwriteSave("UserData", data));
+        //StartCoroutine(cSVController.AddSave("UserData",a));
+        //cSVController.Save("Test",a);
     }
 }
