@@ -21,13 +21,13 @@ public class Lock : MonoBehaviour
             //transform.right = direction;
         }
 
-        //if (Input.GetKey(KeyCode.W))
-        //{
-        //    transform.position += transform.forward * Time.deltaTime * 10;
-        //}
-        //if (Input.GetKey(KeyCode.S))
-        //{
-        //    transform.position -= transform.forward * Time.deltaTime * 10;
-        //}
+        if (Input.GetKey(KeyCode.W))
+        {
+            transform.position += transform.forward * Time.deltaTime * 10;
+        }
+        if (Input.GetKey(KeyCode.S))
+        {
+            transform.position -= transform.forward * Time.deltaTime * 10;
+        }
     }
 }

@@ -5,6 +5,15 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    enum PlayerState
+    {
+		Ground=0,
+		Air=1,
+		Sliding
+	}
+	[Header("プレイヤー基礎数値")]
+	[SerializeField]
+	float speed=0;
 	[SerializeField]
 	float gravity=9.8f;
 
@@ -28,6 +37,10 @@ public class PlayerController : MonoBehaviour
 			moveDirection *= 10;
 		}
 		moveDirection.y -= gravity;
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+			moveDirection.y = 10;
+        }
 		controller.Move((moveDirection) * Time.deltaTime);
 	}
 }

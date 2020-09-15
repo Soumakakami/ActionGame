@@ -18,4 +18,6 @@ public class UserData
         userClass = _userClass;
         userName = _userName;
     }
+
+
 }

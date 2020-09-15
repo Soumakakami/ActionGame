@@ -13,12 +13,6 @@ public class CSVTest : MonoBehaviour
     string[][] data;
     private void Start()
     {
-        int userID = (cSVController.GetLength("UserData"))-1;
-        string[] a = { userID.ToString(), "GT4A", "各務" };
-        data = cSVController.AllLoad("UserData");
-        //data[0][0] = "2";
-        StartCoroutine(cSVController.OverwriteSave("UserData", data));
-        //StartCoroutine(cSVController.AddSave("UserData",a));
-        //cSVController.Save("Test",a);
+
     }
 }
