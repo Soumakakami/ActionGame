@@ -5,7 +5,10 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    CharacterController controller;
+	[SerializeField]
+	float gravity=9.8f;
+
+	CharacterController controller;
 
 	Vector3 moveDirection;
 
@@ -24,7 +27,7 @@ public class PlayerController : MonoBehaviour
 			moveDirection = transform.TransformDirection(moveDirection);
 			moveDirection *= 10;
 		}
-		moveDirection.y -= 9.8f;
+		moveDirection.y -= gravity;
 		controller.Move((moveDirection) * Time.deltaTime);
 	}
 }
