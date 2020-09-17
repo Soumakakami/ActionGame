@@ -4,15 +4,26 @@ using UnityEngine;
 
 public class CameraController : MonoBehaviour
 {
+    public enum CameraMode
+    {
+        Frre=0,
+        Follow=1,
+        Target=2
+    }
+
+    public CameraMode cameraMode = CameraMode.Frre;
+
     private Camera cam;
 
     public float sensitivity = 3;
-    [HideInInspector]
+    //[HideInInspector]
     public float mouseX, mouseY;
     public float maxUpAngle = 80;
     public float maxDownAngle = -80;
     public Transform player;
     public Transform CameraPosition;
+
+    public Transform target;
 
     private void Awake()
     {
@@ -23,6 +34,9 @@ public class CameraController : MonoBehaviour
 
         //カーソル不可視化
         Cursor.visible = false;
+
+        //StartFollowCamera(target) ;
+
     }
 
     private float rotX = 0.0f, rotY = 0.0f;
@@ -31,6 +45,23 @@ public class CameraController : MonoBehaviour
     public float rotZ = 0.0f;
 
     private void Update()
+    {
+        switch (cameraMode)
+        {
+            default:
+            case CameraMode.Frre:
+                FreeCamera();
+                break;
+            case CameraMode.Follow:
+                FollowCamera();
+                break;
+            case CameraMode.Target:
+                TargetCamera(target);
+                break;
+        }
+    }
+
+    private void FreeCamera()
     {
         //マウスの入力
         mouseX = Input.GetAxis("Mouse X") * sensitivity;
@@ -45,11 +76,11 @@ public class CameraController : MonoBehaviour
 
         //カメラに回転を適応
         transform.localRotation = Quaternion.Euler(rotX, rotY, rotZ);
-        //プレイヤーの動きにも適応
-        player.Rotate(Vector3.up * mouseX);
+
         //カメラの位置に自身を移動
         transform.position = CameraPosition.position;
     }
+
 
     public void Shake(float magnitude, float duration)
     {
@@ -65,5 +96,33 @@ public class CameraController : MonoBehaviour
             yield return wfeof;
         }
         rotZ = 0.0f;
+    }
+
+    public void StartTargetCamera(Transform _target)
+    {
+        target = _target;
+        cameraMode = CameraMode.Follow;
+    }
+
+    private void TargetCamera(Transform _target)
+    {
+        float speed = 0.1f;
+
+        // ターゲット方向のベクトルを取得
+        Vector3 relativePos = _target.position - this.transform.position;
+        // 方向を、回転情報に変換
+        Quaternion rotation = Quaternion.LookRotation(relativePos);
+        // 現在の回転情報と、ターゲット方向の回転情報を補完する
+        transform.rotation = Quaternion.Slerp(this.transform.rotation, rotation, speed);
+    }
+
+    private void FollowCamera()
+    {   
+        //カメラの位置に自身を移動
+        transform.position = CameraPosition.position;
+        Vector3 pos = player.forward;
+        Quaternion rotation = Quaternion.LookRotation(pos,player.up);
+        // 現在の回転情報と、ターゲット方向の回転情報を補完する
+        transform.rotation = Quaternion.Slerp(this.transform.rotation, rotation, 0.05f);
     }
 }

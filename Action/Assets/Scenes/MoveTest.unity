@@ -683,7 +683,7 @@ MonoBehaviour:
   slideAngle: 40
   layer:
     serializedVersion: 2
-    m_Bits: 16
+    m_Bits: 567
   foot: {fileID: 973202517}
   head: {fileID: 2049593247}
   ground: 0
