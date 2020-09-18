@@ -52,9 +52,6 @@ public class CameraController : MonoBehaviour
             case CameraMode.Frre:
                 FreeCamera();
                 break;
-            case CameraMode.Follow:
-                FollowCamera();
-                break;
             case CameraMode.Target:
                 TargetCamera(target);
                 break;
