@@ -1,4 +1,4 @@
-﻿
+﻿using SKLibrary;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -16,13 +16,14 @@ public class PlayerController : MonoBehaviour
         Squat = 3
     }
 
+    public float a = 1.001f;
     /// <summary>
     /// 壁走りが左右どちらでおこなっているか
     /// </summary>
     enum WallRunState
     {
-        Right = 0,
-        Left = 1
+        Right = 1,
+        Left = -1
     }
 
 
@@ -56,7 +57,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     LayerMask layer;                        //Rayが適応されるレイヤー
     [SerializeField]
-    float maxAddSpeed = 10;                 //加速度の限界を設定
+    float maxSpeed = 10;                    //加速度の限界を設定
 
     [Header("アタッチするオブジェクト")]
     [SerializeField]
@@ -85,11 +86,12 @@ public class PlayerController : MonoBehaviour
     Vector3 characterVelocityMomentum;      //キャラクターの感性方向
     float moveX;                            //X軸の移動値
     float moveZ;                            //Z軸の移動値
-    public Vector3 characterVelocity;              //キャラクターの移動値
+    public Vector3 characterVelocity;       //キャラクターの移動値
     Vector3 playerAngle;                    //キャラクターの角度
     bool wallRanIntervalFlag = true;
     float camAngle = 0;
     float wallAngle = 0;
+    bool airFlag = false;
 
     private void Start()
     {
@@ -106,10 +108,16 @@ public class PlayerController : MonoBehaviour
         //地面チェックを毎フレーム行う
         ground = controller.isGrounded;
 
-        //加速度が限界を超えた場合限界で止める
-        if (addSpeed >= maxAddSpeed) addSpeed = maxAddSpeed;
+
         ctrlKey = Input.GetKey(KeyCode.LeftControl);
-        transform.localScale = (ctrlKey ? new Vector3(1,0.5f,1): new Vector3(1, 1, 1));
+        if (ctrlKey)
+        {
+            transform.localScale = new Vector3(1, 0.5f, 1);
+        }
+        else if (!ctrlKey && !CeilingCheck())
+        {
+            transform.localScale = new Vector3(1,1,1);
+        }
 
         //プレイヤーの遷移状態に応じて行う処理を変える
         switch (playereState)
@@ -184,8 +192,9 @@ public class PlayerController : MonoBehaviour
     /// <summary>
     /// 頭上に何もないか検知する
     /// </summary>
-    private void CeilingCheck()
+    private bool CeilingCheck()
     {
+        bool topHit = false;
         //真上に伸びるRayを作成
         Ray ray = new Ray(head.transform.position, transform.up);
         RaycastHit hit;
@@ -194,10 +203,11 @@ public class PlayerController : MonoBehaviour
         //何かしらのオブジェクトにHitした場合
         if (Physics.Raycast(ray, out hit, 0.2f, layer))
         {
-            Debug.Log("天井に頭をぶつけました");
             //上方向の力を下方向に変更
             characterVelocityY = -1;
+            topHit = true;
         }
+        return topHit;
     }
 
     /// <summary>
@@ -218,33 +228,39 @@ public class PlayerController : MonoBehaviour
 
         Vector3 slidingCheck = characterVelocity;
         slidingCheck.y = 0;
+
         //スライディング状態
         if (ctrlKey && ground && slidingCheck.magnitude > 0)
         {
+            Debug.Log("スライディング");
             playereState = PlayereState.Sliding;
-            addSpeed += 0.2f;
+            return;
         }
         //しゃがみ状態
         else if (ctrlKey && characterVelocity.x == 0 && characterVelocity.z == 0)
         {
             playereState = PlayereState.Squat;
+            return;
         }
 
         //地面感知
         if (controller.isGrounded)
         {
-            //加速度を1にする
-            addSpeed = 1;
             //カメラの向いている方向に歩く
-            characterVelocity = transform.right * moveX * walkSpeed + transform.forward * moveZ * walkSpeed;
+            characterVelocity = transform.right * moveX  + transform.forward * moveZ;
+
             //重力を0に
             characterVelocityY = 0f;
+
+            //正規化したほうにスピード分加速
+            characterVelocity=characterVelocity.normalized * walkSpeed;
 
             //ジャンプ
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 Jump(jumpForce);
             }
+
             //地面にいる間は慣性を受けない
             characterVelocityMomentum = Vector3.zero;
         }
@@ -264,14 +280,29 @@ public class PlayerController : MonoBehaviour
         //重力を加える
         characterVelocityY += gravityDownForce * Time.deltaTime;
 
-        //重力を適応
-        characterVelocity.y = characterVelocityY;
+
 
         //キャラクターのうごきに慣性を追加させる
         characterVelocity += characterVelocityMomentum;
-
+        if (maxSpeed <= (Mathf.Abs(characterVelocity.x) + Mathf.Abs(characterVelocity.z)))
+        {
+            Debug.Log("速度超えたよ");
+            characterVelocity.y = 0;
+            characterVelocity = characterVelocity.normalized * maxSpeed;
+        }
+        Ray ray = new Ray(foot.transform.position, transform.up * -1);
+        RaycastHit hit;
+        Debug.DrawRay(ray.origin, ray.direction * 0.2f);
+        //重力を適応
+        characterVelocity.y = characterVelocityY;
+        if (Physics.Raycast(ray, out hit, 1f, layer))
+        {
+            controller.Move(hit.point-transform.position);
+            ground = true;
+        }
         //移動を適応
-        controller.Move(characterVelocity.normalized * walkSpeed * addSpeed * Time.deltaTime);
+        controller.Move(characterVelocity * Time.deltaTime);
+
     }
 
     /// <summary>
@@ -399,9 +430,10 @@ public class PlayerController : MonoBehaviour
         moveX = Input.GetAxisRaw("Horizontal");
         moveZ = Input.GetAxisRaw("Vertical");
 
-        if (!ctrlKey)
+        if (!ctrlKey && !CeilingCheck())
         {
             playereState = PlayereState.Default;
+            return;
         }
 
 
@@ -411,13 +443,18 @@ public class PlayerController : MonoBehaviour
             //加速度を1にする
             addSpeed = 1;
             //カメラの向いている方向に歩く
-            characterVelocity = transform.right * moveX * walkSpeed * 0.5f + transform.forward * moveZ * walkSpeed * 0.5f;
+            characterVelocity = transform.right * moveX + transform.forward * moveZ;
+
+            characterVelocity = characterVelocity.normalized * walkSpeed * 0.5f;
+
             //重力を0に
             characterVelocityY = 0f;
 
             //ジャンプ
             if (Input.GetKeyDown(KeyCode.Space))
             {
+                gravity = 60;
+                airFlag = true;
                 Jump(jumpForce);
             }
             //地面にいる間は慣性を受けない
@@ -427,6 +464,11 @@ public class PlayerController : MonoBehaviour
         //地面から離れたら
         if (!controller.isGrounded)
         {
+            if (!airFlag)
+            {
+                airFlag = true;
+                characterVelocityY = 0;
+            }
             //左右に壁があるかチェック
             WallCheck();
             //空中にいる間に動ける方向を作成
@@ -438,73 +480,103 @@ public class PlayerController : MonoBehaviour
         //重力を加える
         characterVelocityY += gravityDownForce * Time.deltaTime;
 
-        // 重力を適応
-        characterVelocity.y = characterVelocityY;
+
 
         // キャラクターのうごきに慣性を追加させる
         characterVelocity += characterVelocityMomentum;
 
+        if (maxSpeed <= (Mathf.Abs(characterVelocity.x) + Mathf.Abs(characterVelocity.z)))
+        {
+            characterVelocity.y = 0;
+            characterVelocity = characterVelocity.normalized * maxSpeed;
+        }
+        // 重力を適応
+        characterVelocity.y = characterVelocityY;
+
         // 移動を適応
         controller.Move(characterVelocity * Time.deltaTime);
     }
+
 
     /// <summary>
     /// スライディングの移動処理
     /// </summary>
     private void SlidingMovemnet()
     {
-        characterVelocityY = 0;
-        if (wallRanIntervalFlag)
-        {
 
         if (!ctrlKey)
         {
-            playereState=PlayereState.Default;
+            playereState = PlayereState.Default;
+            return;
         }
-
+        Ray ray = new Ray(foot.transform.position, transform.up * -1);
+        RaycastHit hit;
+        Debug.DrawRay(ray.origin, ray.direction * 0.2f);
         if (ground)
         {
+
+            if (GroundSlope() == 0)
+            {
+                characterVelocity += (characterVelocity.normalized * -1)*a;
+            }
+
+
+            //何かしらのオブジェクトにHitした場合
+            if (Physics.Raycast(ray, out hit, 0.2f, layer))
+            {
+
+                characterVelocityMomentum = hit.normal;
+                characterVelocityMomentum.y = 0;
+            }
+
+
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 playereState = PlayereState.Default;
+                gravity = 60;
+                airFlag = true;
+
                 Jump(jumpForce);
-                    wallRanIntervalFlag = false;
-                    StartCoroutine(WallRunInterval());
             }
+
         }
-        
+        else
+        {
+            playereState = PlayereState.Default;
+            gravity = 60;
+            airFlag = true;
+            characterVelocityY = 0;
+            return;
+        }
+
         //重力を作成
         float gravityDownForce = gravity * -1;
 
         //重力を加える
         characterVelocityY += gravityDownForce * Time.deltaTime;
 
-        // 重力を適応
-        characterVelocity.y = characterVelocityY;
+
+
 
         // キャラクターのうごきに慣性を追加させる
         characterVelocity += characterVelocityMomentum;
 
-        characterVelocity.Normalize();
+        if (maxSpeed <= (Mathf.Abs(characterVelocity.x) + Mathf.Abs(characterVelocity.z)))
+        {
+            Debug.Log("速度超えたよ");
+            characterVelocity.y = 0;
+            characterVelocity = characterVelocity.normalized * maxSpeed;
+        }
 
-        // 移動を適応
-        controller.Move(characterVelocity * walkSpeed * addSpeed * Time.deltaTime);
-
-        Ray ray = new Ray(transform.position, transform.up * -1);
-        RaycastHit hit;
-        Debug.DrawRay(ray.origin, ray.direction * 3);
-
-        ////Rayがヒットしたところの角度を計算
-        //if (Physics.Raycast(ray, out hit, 3, layer))
-        //{
-        //    Vector3 nor=hit.normal;
-        //    nor.y = 0;
-        //    characterVelocity += nor*10 * Time.deltaTime;
-        //    transform.position = new Vector3(transform.position.x, hit.point.y + 0.5f, transform.position.z);
-        //}
+        // 重力を適応
+        characterVelocity.y = characterVelocityY;
+        if (Physics.Raycast(ray, out hit, 0.2f, layer))
+        {
+            transform.SetPositionY(hit.point.y + transform.localScale.y);
 
         }
         // 移動を適応
-        controller.Move(characterVelocity * walkSpeed * addSpeed * Time.deltaTime);
+        controller.Move(characterVelocity * Time.deltaTime);
+
     }
 }
