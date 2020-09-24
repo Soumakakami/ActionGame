@@ -25,7 +25,10 @@ public class CameraController : MonoBehaviour
 
     public Transform target;
 
-    private void Awake()
+    private PlayerController playerController;
+
+
+    private void Start()
     {
         cam = this.GetComponent<Camera>();
 
@@ -34,14 +37,13 @@ public class CameraController : MonoBehaviour
 
         //カーソル不可視化
         Cursor.visible = false;
-
+        playerController = FindObjectOfType<PlayerController>();
         //StartFollowCamera(target) ;
 
     }
 
     private float rotX = 0.0f, rotY = 0.0f;
 
-    [HideInInspector]
     public float rotZ = 0.0f;
 
     private void Update()
@@ -56,6 +58,8 @@ public class CameraController : MonoBehaviour
                 TargetCamera(target);
                 break;
         }
+
+        DiagonalCamera();
     }
 
     private void FreeCamera()
@@ -121,5 +125,29 @@ public class CameraController : MonoBehaviour
         Quaternion rotation = Quaternion.LookRotation(pos,player.up);
         // 現在の回転情報と、ターゲット方向の回転情報を補完する
         transform.rotation = Quaternion.Slerp(this.transform.rotation, rotation, 0.05f);
+    }
+
+    private void DiagonalCamera()
+    {
+        if (playerController.playereState!=PlayerController.PlayereState.WallRun)
+        {
+            rotZ = Mathf.Lerp(rotZ,0,0.01f);
+            return;
+        }
+        else
+        {
+            switch (playerController.wallRunState)
+            {
+                case PlayerController.WallRunState.Right:
+                    rotZ = Mathf.Lerp(rotZ, 20, 0.01f);
+                    break;
+                case PlayerController.WallRunState.Left:
+                    rotZ = Mathf.Lerp(rotZ, -20, 0.01f);
+                    break;
+                default:
+                    rotZ = Mathf.Lerp(rotZ, 20, 0.9f);
+                    break;
+            }
+        }
     }
 }

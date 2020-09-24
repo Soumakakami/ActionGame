@@ -4,8 +4,9 @@
 Material:
   serializedVersion: 6
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_Name: TexturePanner_mat3
   m_Shader: {fileID: 4800000, guid: 4d846dee7d5e44743a993157b1b14b43, type: 3}
   m_ShaderKeywords: _COLORMODE_REPLACE _EMISSION _NOTRANSPARENCY_ON _OFFSETSCROLL_SCROLL
@@ -42,6 +43,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Masktexture:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -97,6 +102,7 @@ Material:
     - _Horizontalstretchfreq: 10
     - _Horizontalstretchoffset: 0
     - _Horizontalstretchpivotpoint: 0
+    - _Masktexturerotationspeed: 0
     - _Metallic: 0
     - _Mode: 0
     - _Notransparency: 1
@@ -154,8 +160,10 @@ Material:
     - __dirty: 1
     - _s: 0
     m_Colors:
-    - _Color: {r: 1.1, g: 0.66, b: 0, a: 1}
+    - _Color: {r: 2.2, g: 1.3246073, b: 0, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _Masktextureoffset: {r: 0, g: 0, b: 0, a: 0}
+    - _Masktexturetiling: {r: 1, g: 1, b: 0, a: 0}
     - _Offset: {r: 0, g: 0, b: 0, a: 0}
     - _Scanlinespeed: {r: 0, g: -0.1, b: 0, a: 0}
     - _Scanlinestiling: {r: 1, g: 2, b: 0, a: 0}

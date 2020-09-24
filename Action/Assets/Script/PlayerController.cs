@@ -8,7 +8,7 @@ public class PlayerController : MonoBehaviour
     /// <summary>
     /// プレイヤーの遷移状態
     /// </summary>
-    enum PlayereState
+    public enum PlayereState
     {
         Default = 0,
         WallRun = 1,
@@ -16,21 +16,20 @@ public class PlayerController : MonoBehaviour
         Squat = 3
     }
 
-    public float a = 1.001f;
     /// <summary>
     /// 壁走りが左右どちらでおこなっているか
     /// </summary>
-    enum WallRunState
+    public enum WallRunState
     {
         Right = 1,
         Left = -1
     }
 
-
+    [Header("プレイヤーのスーテト")]
     [SerializeField]
-    PlayereState playereState = PlayereState.Default;
+    public PlayereState playereState = PlayereState.Default;
     [SerializeField]
-    WallRunState wallRunState = WallRunState.Right;
+    public WallRunState wallRunState = WallRunState.Right;
 
 
     [Header("プレイヤー基礎関連")]
@@ -58,6 +57,8 @@ public class PlayerController : MonoBehaviour
     LayerMask layer;                        //Rayが適応されるレイヤー
     [SerializeField]
     float maxSpeed = 10;                    //加速度の限界を設定
+    [SerializeField]
+    float friction = 10;                    //スライディング時の摩擦
 
     [Header("アタッチするオブジェクト")]
     [SerializeField]
@@ -83,7 +84,7 @@ public class PlayerController : MonoBehaviour
     float footDistance = 0;                 //足元までの距離	
 
     float characterVelocityY;               //キャラクターのY方向の値
-    Vector3 characterVelocityMomentum;      //キャラクターの感性方向
+    public Vector3 characterVelocityMomentum;      //キャラクターの感性方向
     float moveX;                            //X軸の移動値
     float moveZ;                            //Z軸の移動値
     public Vector3 characterVelocity;       //キャラクターの移動値
@@ -92,7 +93,7 @@ public class PlayerController : MonoBehaviour
     float camAngle = 0;
     float wallAngle = 0;
     bool airFlag = false;
-
+    float timer;
     private void Start()
     {
         //コントローラーを取得
@@ -125,15 +126,18 @@ public class PlayerController : MonoBehaviour
             default:
             case PlayereState.Default:
                 Movemnet();
+                timer = 0;
                 break;
             case PlayereState.WallRun:
                 WallRunMovemnet();
+                timer = 0;
                 break;
             case PlayereState.Sliding:
                 SlidingMovemnet();
                 break;
             case PlayereState.Squat:
                 SquatMovemnet();
+                timer = 0;
                 break;
         }
 
@@ -219,6 +223,7 @@ public class PlayerController : MonoBehaviour
         playerAngle = cam.transform.eulerAngles;
         //プレイヤーが上下に回転しないようにxを固定
         playerAngle.x = 0;
+        playerAngle.z = 0;
 
         //自身に適応
         transform.eulerAngles = playerAngle;
@@ -232,7 +237,7 @@ public class PlayerController : MonoBehaviour
         //スライディング状態
         if (ctrlKey && ground && slidingCheck.magnitude > 0)
         {
-            Debug.Log("スライディング");
+
             playereState = PlayereState.Sliding;
             return;
         }
@@ -258,9 +263,11 @@ public class PlayerController : MonoBehaviour
             //ジャンプ
             if (Input.GetKeyDown(KeyCode.Space))
             {
+                characterVelocityY = 0;
                 Jump(jumpForce);
+                wallRanIntervalFlag = false;
+                StartCoroutine(WallRunInterval());
             }
-
             //地面にいる間は慣性を受けない
             characterVelocityMomentum = Vector3.zero;
         }
@@ -286,16 +293,17 @@ public class PlayerController : MonoBehaviour
         characterVelocity += characterVelocityMomentum;
         if (maxSpeed <= (Mathf.Abs(characterVelocity.x) + Mathf.Abs(characterVelocity.z)))
         {
-            Debug.Log("速度超えたよ");
             characterVelocity.y = 0;
             characterVelocity = characterVelocity.normalized * maxSpeed;
         }
+
         Ray ray = new Ray(foot.transform.position, transform.up * -1);
         RaycastHit hit;
         Debug.DrawRay(ray.origin, ray.direction * 0.2f);
+
         //重力を適応
         characterVelocity.y = characterVelocityY;
-        if (Physics.Raycast(ray, out hit, 1f, layer))
+        if (Physics.Raycast(ray, out hit, 1f, layer)&& wallRanIntervalFlag)
         {
             controller.Move(hit.point-transform.position);
             ground = true;
@@ -310,7 +318,9 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void WallRunMovemnet()
     {
-
+        Vector3 test;
+        test = characterVelocity;
+        test.y = 0;
         Vector3 direction;
         int dir;
         switch (wallRunState)
@@ -331,41 +341,49 @@ public class PlayerController : MonoBehaviour
             Ray ray = new Ray(transform.position, direction);
             RaycastHit hit;
             Debug.DrawRay(ray.origin, ray.direction * wallCheckDistance);
+
+            //自身から左右に壁がないかチェック
             if (Physics.Raycast(ray, out hit, wallCheckDistance))
             {
                 transform.right = hit.normal * dir;
                 characterVelocityMomentum = Vector3.zero;
-                characterVelocity = transform.forward;
+                characterVelocity = transform.forward * test.magnitude;
                 characterVelocityY = 0;
 
-                characterVelocity *= wallRunSpeed * addSpeed;
                 controller.Move(characterVelocity * Time.deltaTime);
 
+                //壁ジャンプ
                 if (Input.GetKeyDown(KeyCode.Space))
                 {
                     AddForce(hit.normal * wallJumpForce);
                     Jump(jumpForce);
-                    addSpeed += 0.1f;
                     playereState = PlayereState.Default;
                     wallRanIntervalFlag = false;
                     StartCoroutine(WallRunInterval());
                 }
 
+                //カメラのアングルを取得
                 var axis = Vector3.Cross(cam.transform.right, hit.normal);
                 camAngle = Vector3.Angle(cam.transform.right, hit.normal) * (axis.x < 0 ? -1 : 1);
 
+                //自身のアングルを取得
                 var testaxis = Vector3.Cross(transform.right, hit.normal);
                 wallAngle = Vector3.Angle(transform.right, hit.normal) * (testaxis.x < 0 ? -1 : 1);
 
+                //カメラの角度が正面から一定角度を超えた場合
                 if (Mathf.Abs(Mathf.Abs(camAngle) - Mathf.Abs(wallAngle)) >= breakAngle)
                 {
+                    //ウォールランモードを解除
                     playereState = PlayereState.Default;
+                    //ウォールランフラグをオフ
                     wallRanIntervalFlag = false;
+                    //一定時間ウォールランモードにしない
                     StartCoroutine(WallRunInterval());
                 }
             }
             else
             {
+                //フラグがオフならデフォルトモードに戻る
                 playereState = PlayereState.Default;
             }
         }
@@ -503,63 +521,13 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void SlidingMovemnet()
     {
+        //characterVelocityMomentum = Vector3.zero;
 
         if (!ctrlKey)
         {
             playereState = PlayereState.Default;
             return;
         }
-        Ray ray = new Ray(foot.transform.position, transform.up * -1);
-        RaycastHit hit;
-        Debug.DrawRay(ray.origin, ray.direction * 0.2f);
-        if (ground)
-        {
-
-            if (GroundSlope() == 0)
-            {
-                characterVelocity += (characterVelocity.normalized * -1)*a;
-            }
-
-
-            //何かしらのオブジェクトにHitした場合
-            if (Physics.Raycast(ray, out hit, 0.2f, layer))
-            {
-
-                characterVelocityMomentum = hit.normal;
-                characterVelocityMomentum.y = 0;
-            }
-
-
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                playereState = PlayereState.Default;
-                gravity = 60;
-                airFlag = true;
-
-                Jump(jumpForce);
-            }
-
-        }
-        else
-        {
-            playereState = PlayereState.Default;
-            gravity = 60;
-            airFlag = true;
-            characterVelocityY = 0;
-            return;
-        }
-
-        //重力を作成
-        float gravityDownForce = gravity * -1;
-
-        //重力を加える
-        characterVelocityY += gravityDownForce * Time.deltaTime;
-
-
-
-
-        // キャラクターのうごきに慣性を追加させる
-        characterVelocity += characterVelocityMomentum;
 
         if (maxSpeed <= (Mathf.Abs(characterVelocity.x) + Mathf.Abs(characterVelocity.z)))
         {
@@ -568,13 +536,68 @@ public class PlayerController : MonoBehaviour
             characterVelocity = characterVelocity.normalized * maxSpeed;
         }
 
-        // 重力を適応
-        characterVelocity.y = characterVelocityY;
-        if (Physics.Raycast(ray, out hit, 0.2f, layer))
+        Ray ray = new Ray(foot.transform.position, transform.up * -1);
+        RaycastHit hit;
+        Debug.DrawRay(ray.origin, ray.direction * 0.2f);
+        if (ground)
         {
-            transform.SetPositionY(hit.point.y + transform.localScale.y);
+            if (GroundSlope() == 0)
+            {
+                Vector3 nor = characterVelocity;
+                nor.y = 0;
+                timer += Time.deltaTime*5;
+                characterVelocityMomentum = (nor.normalized*(1-timer))*Time.deltaTime*friction;
+
+                if (nor.magnitude<=1)
+                {
+                    playereState = PlayereState.Squat;
+                }
+
+            }
+            //何かしらのオブジェクトにHitした場合
+            else if (Physics.Raycast(ray, out hit, 0.2f, layer))
+            {
+
+                characterVelocityMomentum = hit.normal*0.5f;
+                //characterVelocityMomentum.y = 0;
+            }
+
+
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                characterVelocityY = 0;
+                playereState = PlayereState.Default;
+                Jump(jumpForce);
+                wallRanIntervalFlag = false;
+                StartCoroutine(WallRunInterval());
+            }
 
         }
+        else
+        {
+            playereState = PlayereState.Default;
+            characterVelocityY = 0;
+        }
+
+        //重力を作成
+        float gravityDownForce = gravity * -1;
+
+        //重力を加える
+        characterVelocityY += gravityDownForce * Time.deltaTime;
+
+        if (Physics.Raycast(ray, out hit, 0.2f, layer) && wallRanIntervalFlag)
+        {
+            controller.Move(hit.point - transform.position);
+            ground = true;
+        }
+
+
+        // キャラクターのうごきに慣性を追加させる
+        characterVelocity += characterVelocityMomentum;
+
+        // 重力を適応
+        characterVelocity.y = characterVelocityY;
+
         // 移動を適応
         controller.Move(characterVelocity * Time.deltaTime);
 
