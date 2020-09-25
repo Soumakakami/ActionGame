@@ -1,5 +1,7 @@
-﻿using System;
+﻿using SKLibrary.SaveAndLoad;
+using System;
 
+[Serializable]
 public class UserData
 {
     public int userId;
@@ -18,6 +20,4 @@ public class UserData
         userClass = _userClass;
         userName = _userName;
     }
-
-
 }
