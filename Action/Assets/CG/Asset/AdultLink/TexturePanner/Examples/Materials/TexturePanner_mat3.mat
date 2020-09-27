@@ -160,7 +160,7 @@ Material:
     - __dirty: 1
     - _s: 0
     m_Colors:
-    - _Color: {r: 2.2, g: 1.3246073, b: 0, a: 1}
+    - _Color: {r: 1.9606783, g: 1.4782078, b: 0, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _Masktextureoffset: {r: 0, g: 0, b: 0, a: 0}
     - _Masktexturetiling: {r: 1, g: 1, b: 0, a: 0}

@@ -94,6 +94,7 @@ public class PlayerController : MonoBehaviour
     float wallAngle = 0;
     bool airFlag = false;
     float timer;
+	public bool airJumpFlag = true;
     private void Start()
     {
         //コントローラーを取得
@@ -108,9 +109,9 @@ public class PlayerController : MonoBehaviour
     {
         //地面チェックを毎フレーム行う
         ground = controller.isGrounded;
+		if (ground) airJumpFlag = true;
 
-
-        ctrlKey = Input.GetKey(KeyCode.LeftControl);
+		ctrlKey = Input.GetKey(KeyCode.LeftControl);
         if (ctrlKey)
         {
             transform.localScale = new Vector3(1, 0.5f, 1);
@@ -279,6 +280,15 @@ public class PlayerController : MonoBehaviour
             WallCheck();
             //空中にいる間に動ける方向を作成
             characterVelocityMomentum = ((transform.right * moveX + transform.forward * moveZ) * airSpeed * Time.deltaTime) * addSpeed;
+			if (Input.GetKeyDown(KeyCode.Space) && airJumpFlag)
+			{
+				characterVelocityMomentum.y = 0;
+				Vector3 mag = characterVelocity;
+				mag.y = 0;
+				characterVelocity = characterVelocityMomentum.normalized * mag.magnitude;
+				Jump(jumpForce);
+				airJumpFlag = false;
+			}
         }
 
         //重力を作成
@@ -323,7 +333,10 @@ public class PlayerController : MonoBehaviour
         test.y = 0;
         Vector3 direction;
         int dir;
-        switch (wallRunState)
+
+		moveX = Input.GetAxisRaw("Horizontal");
+		
+		switch (wallRunState)
         {
             default:
             case WallRunState.Right:
@@ -338,14 +351,16 @@ public class PlayerController : MonoBehaviour
         }
         if (wallRanIntervalFlag)
         {
+			
             Ray ray = new Ray(transform.position, direction);
             RaycastHit hit;
-            Debug.DrawRay(ray.origin, ray.direction * wallCheckDistance);
+            Debug.DrawRay(ray.origin, ray.direction * wallCheckDistance * Mathf.Abs(moveX));
 
             //自身から左右に壁がないかチェック
-            if (Physics.Raycast(ray, out hit, wallCheckDistance))
+            if (Physics.Raycast(ray, out hit, wallCheckDistance*Mathf.Abs(moveX)))
             {
-                transform.right = hit.normal * dir;
+				airJumpFlag = true;
+				transform.right = hit.normal * dir;
                 characterVelocityMomentum = Vector3.zero;
                 characterVelocity = transform.forward * test.magnitude;
                 characterVelocityY = 0;
@@ -482,16 +497,20 @@ public class PlayerController : MonoBehaviour
         //地面から離れたら
         if (!controller.isGrounded)
         {
-            if (!airFlag)
-            {
-                airFlag = true;
-                characterVelocityY = 0;
-            }
             //左右に壁があるかチェック
             WallCheck();
             //空中にいる間に動ける方向を作成
             characterVelocityMomentum = ((transform.right * moveX + transform.forward * moveZ) * (airSpeed * 0.5f) * Time.deltaTime) * addSpeed;
-        }
+			if (Input.GetKeyDown(KeyCode.Space) && airJumpFlag)
+			{
+				characterVelocityMomentum.y = 0;
+				Vector3 mag = characterVelocity;
+				mag.y = 0;
+				characterVelocity = characterVelocityMomentum.normalized * mag.magnitude;
+				Jump(jumpForce);
+				airJumpFlag = false;
+			}
+		}
         //重力を作成
         float gravityDownForce = gravity * -1;
 
@@ -531,7 +550,6 @@ public class PlayerController : MonoBehaviour
 
         if (maxSpeed <= (Mathf.Abs(characterVelocity.x) + Mathf.Abs(characterVelocity.z)))
         {
-            Debug.Log("速度超えたよ");
             characterVelocity.y = 0;
             characterVelocity = characterVelocity.normalized * maxSpeed;
         }
