@@ -40,61 +40,64 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     float gravity = 9.8f;                       //重力
     [SerializeField]
-    float jumpForce = 10;                   //ジャンプ力
+    float jumpForce = 10;                       //ジャンプ力
 
     [Header("壁走り関連")]
-    [SerializeField]
-    float wallRunSpeed = 10;
     [SerializeField]
     float wallJumpForce = 10;
 
     [Header("制限")]
     [SerializeField]
-    float slideAngle = 0;                   //スライディング中の地面の角度
+    float breakAngle = 60;                      //ウォールラン中にカメラをどの程度動かせるかの制御
     [SerializeField]
-    float breakAngle = 60;                  //ウォールラン中にカメラをどの程度動かせるかの制御
+    LayerMask layer;                            //Rayが適応されるレイヤー
     [SerializeField]
-    LayerMask layer;                        //Rayが適応されるレイヤー
+    float maxSpeed = 10;                        //加速度の限界を設定
     [SerializeField]
-    float maxSpeed = 10;                    //加速度の限界を設定
+    float friction = 10;                        //スライディング時の摩擦
     [SerializeField]
-    float friction = 10;                    //スライディング時の摩擦
+    float maxLine = 300;                        //集中線の多さ
 
     [Header("アタッチするオブジェクト")]
     [SerializeField]
-    GameObject foot;                        //足元オブジェクト
+    GameObject foot;                            //足元オブジェクト
     [SerializeField]
-    GameObject head;                        //頭オブジェクト
+    GameObject head;                            //頭オブジェクト
     [SerializeField]
-    CameraController cam;                   //カメラコントローラークラス
+    CameraController cam;                       //カメラコントローラークラス
+    [SerializeField]
+    ParticleSystem effect_Line;                 //集中線エフェクト
 
     [Header("値をいじらないでください")]
     [SerializeField]
-    bool ground = false;                      //地面に接しているか可視化
+    bool ground = false;                        //地面に接しているか可視化
     [SerializeField]
     bool ctrlKey = false;
     [SerializeField]
-    float addSpeed = 1;                     //歩く速度とは別の加速度
+    float addSpeed = 1;                         //歩く速度とは別の加速度
     [SerializeField]
     float wallCheckDistance = 1;                //壁のチェックするRayの長さ
 
-
+    [Header("変動する値")]
+    [SerializeField]
+    bool airJumpFlag = true;
+    [SerializeField]
+    public float speed;
     //キャラクターコンローラー
-    CharacterController controller;         //キャラクターコントローラー	
-    float footDistance = 0;                 //足元までの距離	
+    CharacterController controller;             //キャラクターコントローラー	
+    float footDistance = 0;                     //足元までの距離	
 
-    float characterVelocityY;               //キャラクターのY方向の値
-    public Vector3 characterVelocityMomentum;      //キャラクターの感性方向
-    float moveX;                            //X軸の移動値
-    float moveZ;                            //Z軸の移動値
-    public Vector3 characterVelocity;       //キャラクターの移動値
-    Vector3 playerAngle;                    //キャラクターの角度
+    float characterVelocityY;                   //キャラクターのY方向の値
+    Vector3 characterVelocityMomentum;          //キャラクターの感性方向
+    float moveX;                                //X軸の移動値
+    float moveZ;                                //Z軸の移動値
+    public Vector3 characterVelocity;           //キャラクターの移動値
+    Vector3 playerAngle;                        //キャラクターの角度
     bool wallRanIntervalFlag = true;
     float camAngle = 0;
     float wallAngle = 0;
-    bool airFlag = false;
     float timer;
-	public bool airJumpFlag = true;
+
     private void Start()
     {
         //コントローラーを取得
@@ -103,6 +106,9 @@ public class PlayerController : MonoBehaviour
         footDistance = Vector3.Distance(foot.transform.position, transform.position);
         //カメラを取得
         cam = FindObjectOfType<CameraController>();
+
+        //エフェクト開始
+        effect_Line.Play();
     }
 
     private void Update()
@@ -111,7 +117,17 @@ public class PlayerController : MonoBehaviour
         ground = controller.isGrounded;
 		if (ground) airJumpFlag = true;
 
-		ctrlKey = Input.GetKey(KeyCode.LeftControl);
+        Vector3 mag = characterVelocity;
+        mag.y = 0;
+        speed = mag.magnitude;
+        var em = effect_Line.emission;
+        em.rateOverTime = maxLine* (speed/maxSpeed);
+
+        effect_Line.gameObject.transform.position = transform.position + (characterVelocity.normalized*4);
+
+        CeilingCheck();
+
+        ctrlKey = Input.GetKey(KeyCode.LeftControl);
         if (ctrlKey)
         {
             transform.localScale = new Vector3(1, 0.5f, 1);
@@ -151,7 +167,14 @@ public class PlayerController : MonoBehaviour
     public void Jump(float _force)
     {
         characterVelocityY = _force;
+    }
 
+    public void JumpPad(float _force)
+    {
+        characterVelocityY = 0;
+        characterVelocityY = _force;
+        characterVelocity.y = characterVelocityY;
+        controller.Move(characterVelocity*Time.deltaTime);
     }
 
     /// <summary>
@@ -211,6 +234,7 @@ public class PlayerController : MonoBehaviour
             //上方向の力を下方向に変更
             characterVelocityY = -1;
             topHit = true;
+            Debug.Log("頭当たったよ");
         }
         return topHit;
     }
@@ -311,13 +335,15 @@ public class PlayerController : MonoBehaviour
         RaycastHit hit;
         Debug.DrawRay(ray.origin, ray.direction * 0.2f);
 
-        //重力を適応
-        characterVelocity.y = characterVelocityY;
+
         if (Physics.Raycast(ray, out hit, 1f, layer)&& wallRanIntervalFlag)
         {
             controller.Move(hit.point-transform.position);
             ground = true;
+            Debug.Log("地面");
         }
+        //重力を適応
+        characterVelocity.y = characterVelocityY;
         //移動を適応
         controller.Move(characterVelocity * Time.deltaTime);
 
@@ -487,7 +513,6 @@ public class PlayerController : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 gravity = 60;
-                airFlag = true;
                 Jump(jumpForce);
             }
             //地面にいる間は慣性を受けない
@@ -499,6 +524,7 @@ public class PlayerController : MonoBehaviour
         {
             //左右に壁があるかチェック
             WallCheck();
+
             //空中にいる間に動ける方向を作成
             characterVelocityMomentum = ((transform.right * moveX + transform.forward * moveZ) * (airSpeed * 0.5f) * Time.deltaTime) * addSpeed;
 			if (Input.GetKeyDown(KeyCode.Space) && airJumpFlag)
@@ -565,7 +591,7 @@ public class PlayerController : MonoBehaviour
                 nor.y = 0;
                 timer += Time.deltaTime*5;
                 characterVelocityMomentum = (nor.normalized*(1-timer))*Time.deltaTime*friction;
-
+                characterVelocityY = 0;
                 if (nor.magnitude<=1)
                 {
                     playereState = PlayereState.Squat;
@@ -594,7 +620,7 @@ public class PlayerController : MonoBehaviour
         else
         {
             playereState = PlayereState.Default;
-            characterVelocityY = 0;
+            //characterVelocityY = 0;
         }
 
         //重力を作成
