@@ -121,8 +121,16 @@ public class PlayerController : MonoBehaviour
         mag.y = 0;
         speed = mag.magnitude;
         var em = effect_Line.emission;
-        em.rateOverTime = maxLine* (speed/maxSpeed);
 
+        if (speed>=30)
+        {
+            em.rateOverTime = maxLine * (speed / maxSpeed);
+        }
+        else
+        {
+            em.rateOverTime = 0;
+        }
+       
         effect_Line.gameObject.transform.position = transform.position + (characterVelocity.normalized*4);
 
         CeilingCheck();
@@ -381,6 +389,17 @@ public class PlayerController : MonoBehaviour
             Ray ray = new Ray(transform.position, direction);
             RaycastHit hit;
             Debug.DrawRay(ray.origin, ray.direction * wallCheckDistance * Mathf.Abs(moveX));
+            
+            Ray forwardRay = new Ray(transform.position,transform.forward);
+            RaycastHit forwardRayhit;
+
+
+            if (Physics.Raycast(forwardRay,out forwardRayhit, wallCheckDistance))
+            {
+                test.x = 0;
+                test.z = 0;
+                Debug.Log("ぶつかったよ");
+            }
 
             //自身から左右に壁がないかチェック
             if (Physics.Raycast(ray, out hit, wallCheckDistance*Mathf.Abs(moveX)))
@@ -396,7 +415,11 @@ public class PlayerController : MonoBehaviour
                 //壁ジャンプ
                 if (Input.GetKeyDown(KeyCode.Space))
                 {
+                    Vector3 vec = characterVelocity;
+                    vec.y = 0;
+                    AddForce((vec.normalized * -1) * wallJumpForce);
                     AddForce(hit.normal * wallJumpForce);
+
                     Jump(jumpForce);
                     playereState = PlayereState.Default;
                     wallRanIntervalFlag = false;
