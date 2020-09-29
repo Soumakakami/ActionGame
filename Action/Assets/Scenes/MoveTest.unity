@@ -511,6 +511,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1c86a30ace34aa4d8f50da76911e82d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  power: 55
+  player: {fileID: 0}
+--- !u!1 &45949270 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3013907729076270999, guid: f5cb434ec7666374f8533fa8bc6fb227,
+    type: 3}
+  m_PrefabInstance: {fileID: 41046413993588877}
+  m_PrefabAsset: {fileID: 0}
 --- !u!198 &45949272 stripped
 ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 3013907729076270996, guid: f5cb434ec7666374f8533fa8bc6fb227,
@@ -523,6 +531,19 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 41046413993588877}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &45949274
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 45949270}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d9acba19e56ec09479a6d36c33d59b7b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player: {fileID: 2049706856}
 --- !u!1 &52491855
 GameObject:
   m_ObjectHideFlags: 0
@@ -17215,9 +17236,7 @@ MonoBehaviour:
   airSpeed: 10
   gravity: 60
   jumpForce: 20
-  wallRunSpeed: 10
   wallJumpForce: 10
-  slideAngle: 40
   breakAngle: 60
   layer:
     serializedVersion: 2
