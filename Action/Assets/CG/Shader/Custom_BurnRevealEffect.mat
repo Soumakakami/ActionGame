@@ -28,14 +28,14 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _DistortionLevel: 0.5
-    - _EffectRadius: 2
+    - _DistortionLevel: 0.179
+    - _EffectRadius: 1.721
     - _EnablePixel: 0
     - _Glossiness: 0
     - _GlowAmount: 0.28
     - _Metallic: 0
     - _PixelLevel: 256
-    - _TexCutoff: 1
+    - _TexCutoff: 0
     m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _GlowColor: {r: 0.85, g: 1, b: 1, a: 1}
+    - _Color: {r: 0, g: 0, b: 0, a: 1}
+    - _GlowColor: {r: 0, g: 0, b: 0, a: 1}

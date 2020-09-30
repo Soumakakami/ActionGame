@@ -80,8 +80,8 @@ Material:
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _RimPower: 0.1
-    - _ScanSpeed: 2
-    - _ScanTiling: 8.63
+    - _ScanSpeed: 0.34
+    - _ScanTiling: 10
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 5
@@ -91,5 +91,5 @@ Material:
     - _Color: {r: 1, g: 0, b: 0, a: 1}
     - _Direction: {r: 0, g: 1, b: 0, a: 0}
     - _EmissionColor: {r: 1.4980392, g: 1.4980392, b: 1.4980392, a: 1}
-    - _MainColor: {r: 1, g: 0.109380946, b: 0.10196078, a: 1}
-    - _RimColor: {r: 1, g: 0, b: 0, a: 1}
+    - _MainColor: {r: 0, g: 1, b: 0, a: 1}
+    - _RimColor: {r: 0, g: 1, b: 0, a: 1}

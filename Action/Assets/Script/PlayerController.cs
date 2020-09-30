@@ -168,6 +168,14 @@ public class PlayerController : MonoBehaviour
 
     }
 
+    public void Warp(Vector3 _pos)
+    {
+        gameObject.GetComponent<CharacterController>().enabled = false;
+        transform.position = _pos;
+        ResetData();
+        gameObject.GetComponent<CharacterController>().enabled = true;
+    }
+
     /// <summary>
     /// 上方向に力を加える
     /// </summary>
@@ -668,5 +676,11 @@ public class PlayerController : MonoBehaviour
         // 移動を適応
         controller.Move(characterVelocity * Time.deltaTime);
 
+    }
+
+    private void ResetData()
+    {
+        characterVelocity = Vector3.zero;
+        characterVelocityY = 0;
     }
 }
