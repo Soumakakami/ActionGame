@@ -4,12 +4,14 @@ using UnityEngine;
 
 public class WarpPoint : MonoBehaviour
 {
-    private void Update()
+    [SerializeField]
+    Transform targetPos;
+
+    private void OnTriggerEnter(Collider other)
     {
-        if (Input.GetKeyDown(KeyCode.T))
+        if (other.GetComponent<PlayerController>())
         {
-            var s=FindObjectOfType<PlayerController>();
-            s.Warp(transform.position);
+            other.GetComponent<PlayerController>().Warp(targetPos.position);
         }
     }
 }

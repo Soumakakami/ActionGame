@@ -410,7 +410,7 @@ public class PlayerController : MonoBehaviour
             }
 
             //自身から左右に壁がないかチェック
-            if (Physics.Raycast(ray, out hit, wallCheckDistance*Mathf.Abs(moveX)))
+            if (Physics.Raycast(ray, out hit, wallCheckDistance*Mathf.Abs(moveX),layer))
             {
 				airJumpFlag = true;
 				transform.right = hit.normal * dir;
