@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 2596439016628279033}
   - component: {fileID: 3397545441545469538}
   - component: {fileID: 1784492289392797623}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: DontTouchPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
