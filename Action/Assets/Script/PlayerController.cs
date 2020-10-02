@@ -52,6 +52,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     LayerMask layer;                            //Rayが適応されるレイヤー
     [SerializeField]
+    LayerMask ceilingLayer;                     //頭上のRayのレイヤー制限
+    [SerializeField]
     float maxSpeed = 10;                        //加速度の限界を設定
     [SerializeField]
     float friction = 10;                        //スライディング時の摩擦
@@ -83,6 +85,10 @@ public class PlayerController : MonoBehaviour
     bool airJumpFlag = true;
     [SerializeField]
     public float speed;
+    [SerializeField]
+    private bool leftKeyFlag = false;
+    [SerializeField]
+    private bool rightKeyFlag = false;
     //キャラクターコンローラー
     CharacterController controller;             //キャラクターコントローラー	
     float footDistance = 0;                     //足元までの距離	
@@ -116,7 +122,8 @@ public class PlayerController : MonoBehaviour
         //地面チェックを毎フレーム行う
         ground = controller.isGrounded;
 		if (ground) airJumpFlag = true;
-
+        leftKeyFlag = Input.GetKey(KeyCode.A);
+        rightKeyFlag = Input.GetKey(KeyCode.D);
         Vector3 mag = characterVelocity;
         mag.y = 0;
         speed = mag.magnitude;
@@ -185,6 +192,10 @@ public class PlayerController : MonoBehaviour
         characterVelocityY = _force;
     }
 
+    /// <summary>
+    /// JumpPadの処理
+    /// </summary>
+    /// <param name="_force"></param>
     public void JumpPad(float _force)
     {
         characterVelocityY = 0;
@@ -245,7 +256,7 @@ public class PlayerController : MonoBehaviour
         Debug.DrawRay(ray.origin, ray.direction * 0.2f);
 
         //何かしらのオブジェクトにHitした場合
-        if (Physics.Raycast(ray, out hit, 0.2f, layer))
+        if (Physics.Raycast(ray, out hit, 0.2f, ceilingLayer))
         {
             //上方向の力を下方向に変更
             characterVelocityY = -1;
@@ -376,8 +387,15 @@ public class PlayerController : MonoBehaviour
         Vector3 direction;
         int dir;
 
-		moveX = Input.GetAxisRaw("Horizontal");
-		
+        int keyDir = 0;
+        if (leftKeyFlag)
+        {
+            keyDir = 1;
+        }
+        else if (rightKeyFlag)
+        {
+            keyDir = 1;
+        }
 		switch (wallRunState)
         {
             default:
@@ -396,7 +414,7 @@ public class PlayerController : MonoBehaviour
 			
             Ray ray = new Ray(transform.position, direction);
             RaycastHit hit;
-            Debug.DrawRay(ray.origin, ray.direction * wallCheckDistance * Mathf.Abs(moveX));
+            Debug.DrawRay(ray.origin, ray.direction * wallCheckDistance* keyDir);
             
             Ray forwardRay = new Ray(transform.position,transform.forward);
             RaycastHit forwardRayhit;
@@ -406,11 +424,10 @@ public class PlayerController : MonoBehaviour
             {
                 test.x = 0;
                 test.z = 0;
-                Debug.Log("ぶつかったよ");
             }
 
             //自身から左右に壁がないかチェック
-            if (Physics.Raycast(ray, out hit, wallCheckDistance*Mathf.Abs(moveX),layer))
+            if (Physics.Raycast(ray, out hit, wallCheckDistance * keyDir, layer))
             {
 				airJumpFlag = true;
 				transform.right = hit.normal * dir;
@@ -468,29 +485,33 @@ public class PlayerController : MonoBehaviour
     {
         if (wallRanIntervalFlag)
         {
-
-            Ray rightRay = new Ray(transform.position, transform.right);
-            RaycastHit rightHit;
-
-            Debug.DrawRay(rightRay.origin, rightRay.direction * wallCheckDistance);
-
-            if (Physics.Raycast(rightRay, out rightHit, wallCheckDistance, layer))
+            if (rightKeyFlag)
             {
-                playereState = PlayereState.WallRun;
-                wallRunState = WallRunState.Right;
+                Ray rightRay = new Ray(transform.position, transform.right);
+                RaycastHit rightHit;
+
+                Debug.DrawRay(rightRay.origin, rightRay.direction * wallCheckDistance);
+
+                if (Physics.Raycast(rightRay, out rightHit, wallCheckDistance, layer))
+                {
+                    playereState = PlayereState.WallRun;
+                    wallRunState = WallRunState.Right;
+                }
             }
 
-            Ray leftRay = new Ray(transform.position, transform.right * -1);
-            RaycastHit leftHit;
-
-            Debug.DrawRay(leftRay.origin, leftRay.direction * wallCheckDistance);
-
-            if (Physics.Raycast(leftRay, out leftHit, wallCheckDistance, layer))
+            if (leftKeyFlag)
             {
-                playereState = PlayereState.WallRun;
-                wallRunState = WallRunState.Left;
-            }
+                Ray leftRay = new Ray(transform.position, transform.right * -1);
+                RaycastHit leftHit;
 
+                Debug.DrawRay(leftRay.origin, leftRay.direction * wallCheckDistance);
+
+                if (Physics.Raycast(leftRay, out leftHit, wallCheckDistance, layer))
+                {
+                    playereState = PlayereState.WallRun;
+                    wallRunState = WallRunState.Left;
+                }
+            }
         }
     }
 
