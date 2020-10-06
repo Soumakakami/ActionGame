@@ -44,7 +44,6 @@ public class CameraController : MonoBehaviour
         //カーソル不可視化
         Cursor.visible = false;
         playerController = FindObjectOfType<PlayerController>();
-        //StartFollowCamera(target) ;
 
     }
 
@@ -54,7 +53,15 @@ public class CameraController : MonoBehaviour
 
     private void Update()
     {
-        cam.fieldOfView = min_Fov + (playerController.speed/50)*50;
+        if (playerController.speed>=30)
+        {
+            cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, min_Fov + (playerController.speed / 50) * max_Fov, 0.1f);
+        }
+        else
+        {
+            cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, min_Fov + (playerController.speed / 50) * max_Fov, 0.01f);
+        }
+        
         switch (cameraMode)
         {
             default:
@@ -138,7 +145,7 @@ public class CameraController : MonoBehaviour
     {
         if (playerController.playereState!=PlayerController.PlayereState.WallRun)
         {
-            rotZ = Mathf.Lerp(rotZ,0,0.01f);
+            rotZ = Mathf.Lerp(rotZ,0,0.1f);
             return;
         }
         else
@@ -146,10 +153,10 @@ public class CameraController : MonoBehaviour
             switch (playerController.wallRunState)
             {
                 case PlayerController.WallRunState.Right:
-                    rotZ = Mathf.Lerp(rotZ, 20, 0.01f);
+                    rotZ = Mathf.Lerp(rotZ, 20, 0.1f);
                     break;
                 case PlayerController.WallRunState.Left:
-                    rotZ = Mathf.Lerp(rotZ, -20, 0.01f);
+                    rotZ = Mathf.Lerp(rotZ, -20, 0.1f);
                     break;
                 default:
                     rotZ = Mathf.Lerp(rotZ, 20, 0.9f);

@@ -10,16 +10,32 @@ public class RankingManager : MonoBehaviour
     const string FILE_NAME = "Ranking";
     CSVController controller = new CSVController();
     public List<UserData> userDatas;
-    string[][] strs; 
+    string[][] strs;
+
+    public Text[] rankings;
+    public Text[] bestTimes;
     private void Start()
     {
         strs = controller.AllLoad(FILE_NAME);
 
         UserDataConversion(strs);
 
-        Sort(userDatas);
+        //Sort(userDatas);
 
-        StartCoroutine(controller.OverwriteSave(FILE_NAME, UserDataJug())); 
+        //StartCoroutine(controller.OverwriteSave(FILE_NAME, UserDataJug())); 
+
+        for (int i = 0; i < userDatas.Count; i++)
+        {
+            if (userDatas[i].userName.Length <= 3)
+            {
+                rankings[i].text = (i + 1).ToString() + "     " + userDatas[i].id.ToString("D3") + "  " + userDatas[i].userName+ "   " ;
+            }
+            else
+            {
+                rankings[i].text = (i + 1).ToString() + "     " + userDatas[i].id.ToString("D3") + "  " + userDatas[i].userName.Substring(0, 4) + "   ";
+            }
+            bestTimes[i].text = userDatas[i].bestTime.ToString();
+        }
     }
 
     void UserDataConversion(string[][] _userDatas)
