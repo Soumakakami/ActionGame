@@ -76,7 +76,7 @@ public class CSVController : MonoBehaviour
             //エラーが出たら1秒止めてもう一度
             if (error == true)
             {
-                yield return new WaitForSeconds(1f);
+                yield return null;
             }
             else
             {

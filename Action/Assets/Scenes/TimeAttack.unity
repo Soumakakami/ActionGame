@@ -46634,7 +46634,7 @@ PrefabInstance:
         type: 3}
       propertyPath: targetPos
       value: 
-      objectReference: {fileID: 718154061}
+      objectReference: {fileID: 485168083}
     - target: {fileID: 5908578753805541969, guid: a0a83af7259d38a43add3f0b07a929a5,
         type: 3}
       propertyPath: m_Name
@@ -78451,7 +78451,7 @@ MonoBehaviour:
   CameraPosition: {fileID: 781475718}
   target: {fileID: 0}
   min_Fov: 60
-  max_Fov: 100
+  max_Fov: 120
   rotZ: 0
 --- !u!114 &1423027567
 MonoBehaviour:

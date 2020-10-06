@@ -518,7 +518,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   power: 55
-  player: {fileID: 0}
 --- !u!1001 &35325329
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -12560,6 +12559,8 @@ MonoBehaviour:
   player: {fileID: 2049706861}
   CameraPosition: {fileID: 781475718}
   target: {fileID: 0}
+  min_Fov: 60
+  max_Fov: 100
   rotZ: 0
 --- !u!114 &1423027567
 MonoBehaviour:
@@ -17498,10 +17499,13 @@ MonoBehaviour:
   gravity: 60
   jumpForce: 20
   wallJumpForce: 10
-  breakAngle: 60
+  breakAngle: 90
   layer:
     serializedVersion: 2
     m_Bits: 567
+  ceilingLayer:
+    serializedVersion: 2
+    m_Bits: 0
   maxSpeed: 50
   friction: 100
   maxLine: 300
@@ -17515,6 +17519,8 @@ MonoBehaviour:
   wallCheckDistance: 1
   airJumpFlag: 1
   speed: 0
+  leftKeyFlag: 0
+  rightKeyFlag: 0
   characterVelocity: {x: 0, y: 0, z: 0}
 --- !u!143 &2049706858
 CharacterController:

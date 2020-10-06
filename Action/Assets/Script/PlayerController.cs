@@ -175,10 +175,10 @@ public class PlayerController : MonoBehaviour
 
     }
 
-    public void Warp(Vector3 _pos)
+    public void Warp(Transform _trs)
     {
         gameObject.GetComponent<CharacterController>().enabled = false;
-        transform.position = _pos;
+        transform.position = _trs.position;
         ResetData();
         gameObject.GetComponent<CharacterController>().enabled = true;
     }

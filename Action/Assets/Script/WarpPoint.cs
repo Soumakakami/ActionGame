@@ -11,7 +11,7 @@ public class WarpPoint : MonoBehaviour
     {
         if (other.GetComponent<PlayerController>())
         {
-            other.GetComponent<PlayerController>().Warp(targetPos.position);
+            other.GetComponent<PlayerController>().Warp(targetPos);
         }
     }
 }
