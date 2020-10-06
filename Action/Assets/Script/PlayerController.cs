@@ -126,7 +126,7 @@ public class PlayerController : MonoBehaviour
         rightKeyFlag = Input.GetKey(KeyCode.D);
         Vector3 mag = characterVelocity;
         mag.y = 0;
-        speed = mag.magnitude;
+
         var em = effect_Line.emission;
 
         if (speed>=30)
@@ -138,8 +138,8 @@ public class PlayerController : MonoBehaviour
             em.rateOverTime = 0;
         }
        
-        effect_Line.gameObject.transform.position = transform.position + (characterVelocity.normalized*4);
-
+        effect_Line.gameObject.transform.position = transform.position + (mag.normalized*4);
+        speed = mag.magnitude;
         CeilingCheck();
 
         ctrlKey = Input.GetKey(KeyCode.LeftControl);
@@ -409,6 +409,7 @@ public class PlayerController : MonoBehaviour
                 dir = 1;
                 break;
         }
+
         if (wallRanIntervalFlag)
         {
 			
@@ -434,7 +435,7 @@ public class PlayerController : MonoBehaviour
                 characterVelocityMomentum = Vector3.zero;
                 characterVelocity = transform.forward * test.magnitude;
                 characterVelocityY = 0;
-
+                characterVelocity += hit.normal * -1;
                 controller.Move(characterVelocity * Time.deltaTime);
 
                 //壁ジャンプ
@@ -699,6 +700,9 @@ public class PlayerController : MonoBehaviour
 
     }
 
+    /// <summary>
+    /// 移動方向の距離などを初期化
+    /// </summary>
     private void ResetData()
     {
         characterVelocity = Vector3.zero;

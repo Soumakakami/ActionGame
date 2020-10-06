@@ -2,35 +2,57 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Text;
 
 public class RankingManager : MonoBehaviour
 {
-    const int RANKING_COUNT=3;
-    CSVController controller;
-    [SerializeField]
-    List<float> rankings = new List<float>();
-    string[][] rankingData=new string[RANKING_COUNT][];
-    [SerializeField]
-    string stageName;
-    float time = 24;
-    string[] userData;
+    const int MAX_RANKING_USER_COUNT=5;
+    const string FILE_NAME = "Ranking";
+    CSVController controller = new CSVController();
+    public List<UserData> userDatas;
+    string[][] strs; 
     private void Start()
     {
-        controller = new CSVController();
-        rankingData=controller.AllLoad(stageName);
-        Debug.Log(rankingData.Length);
-        for (int i = 0; i < controller.GetLength(stageName)-1; i++)
-        {
-            rankings.Add(float.Parse(rankingData[i][2]));
-        }
-        rankings.Add(time);
-        for (int i = 0; i < rankings.Count; i++)
-        {
-            for (int j = i+1; j < rankings.Count; j++)
-            {
-                if (rankings[i]>rankings[j])
-                {
+        strs = controller.AllLoad(FILE_NAME);
 
+        UserDataConversion(strs);
+
+        Sort(userDatas);
+
+        StartCoroutine(controller.OverwriteSave(FILE_NAME, UserDataJug())); 
+    }
+
+    void UserDataConversion(string[][] _userDatas)
+    {
+        for (int i = 0; i < MAX_RANKING_USER_COUNT; i++)
+        {
+            userDatas.Add(new UserData(_userDatas[i][0],int.Parse(_userDatas[i][1]),float.Parse(_userDatas[i][2])));
+        }
+    }
+    string[][] UserDataJug()
+    {
+        string[][]users = new string[userDatas.Count][];
+        for (int i = 0; i < userDatas.Count; i++)
+        {
+            string[] u=new string[3];
+            u[0] = userDatas[i].userName;
+            u[1] = userDatas[i].id.ToString();
+            u[2] = userDatas[i].bestTime.ToString();
+            users[i] = u;
+        }
+        return users;
+    }
+    void  Sort(List<UserData> _userDatas)
+    {
+        for (int i = 0; i < _userDatas.Count; i++)
+        {
+            for (int j = i+1; j < _userDatas.Count; j++)
+            {
+                if (_userDatas[i].bestTime>_userDatas[j].bestTime)
+                {
+                    var user = userDatas[i];
+                    userDatas[i] = userDatas[j];
+                    userDatas[j] = user;
                 }
             }
         }

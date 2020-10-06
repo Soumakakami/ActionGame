@@ -4,20 +4,19 @@ using System;
 [Serializable]
 public class UserData
 {
-    public int userId;
-    public string userClass;
     public string userName;
-
+    public float bestTime;
+    public int id;
     /// <summary>
     /// ユーザーの情報
     /// </summary>
     /// <param name="_userId"></param>
     /// <param name="_userClass"></param>
     /// <param name="_userName"></param>
-    public UserData(int _userId, string _userClass , string _userName)
+    public UserData(string _userName, int _id = 0,float _bestTime=999.999f)
     {
-        userId =_userId;
-        userClass = _userClass;
         userName = _userName;
+        bestTime = _bestTime;
+        id = _id;
     }
 }

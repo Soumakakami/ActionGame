@@ -27,6 +27,12 @@ public class CameraController : MonoBehaviour
 
     private PlayerController playerController;
 
+    [Header("Fov")]
+    [SerializeField]
+    float min_Fov;
+    [SerializeField]
+    float max_Fov;
+
 
     private void Start()
     {
@@ -48,6 +54,7 @@ public class CameraController : MonoBehaviour
 
     private void Update()
     {
+        cam.fieldOfView = min_Fov + (playerController.speed/50)*50;
         switch (cameraMode)
         {
             default:

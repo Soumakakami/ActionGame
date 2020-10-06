@@ -131,7 +131,7 @@ public class CSVController : MonoBehaviour
             else
             {
                 Debug.Log("書き込みました");
-                for (int i = 0; i < _table.Length - 1; i++)
+                for (int i = 0; i < _table.Length; i++)
                 {
                     sw.WriteLine(string.Join(",", _table[i]));
                 }
@@ -173,7 +173,7 @@ public class CSVController : MonoBehaviour
     /// </summary>
     /// <param name="_fileName">ファイル名</param>
     /// <returns></returns>
-    private bool CheckFile(string _fileName)
+    public bool CheckFile(string _fileName)
     {
         return File.Exists(GetPath(_fileName));
     }
@@ -186,6 +186,6 @@ public class CSVController : MonoBehaviour
     private string GetPath(string _fileName)
     {
 
-        return folderPath + _fileName + ".csv";
+        return folderPath + _fileName + ".txt";
     }
 }

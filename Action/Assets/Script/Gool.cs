@@ -17,7 +17,7 @@ public class Gool : MonoBehaviour
     {
         if (other.GetComponent<PlayerController>())
         {
-            gameManager.Gool();
+            
         }
     }
 }
