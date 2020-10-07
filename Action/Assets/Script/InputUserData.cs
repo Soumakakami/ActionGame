@@ -21,9 +21,10 @@ public class InputUserData : MonoBehaviour
 
         button.SetActive(false);
         note.SetActive(true);
+
         userData =new UserData(name.text, controller.GetLength("UserData"));
 
-        SaveLoadSystem.Save((object)userData,"UserData");
+
 
         string[] userDataStr=new string[3];
 
@@ -34,7 +35,7 @@ public class InputUserData : MonoBehaviour
         StartCoroutine(controller.AddSave("UserData", userDataStr, MyDestroy));
 
         TitleManager titleManager = FindObjectOfType<TitleManager>();
-
+        SaveLoadSystem.Save((object)userData, "UserData");
         if (titleManager!=null)
         {
             titleManager.Initialization();
